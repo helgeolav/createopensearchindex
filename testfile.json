@@ -1,0 +1,10 @@
+{
+  "input": {
+    "field1": "text",
+    "nested": {
+      "number": "integer",
+      "ip": "ip"
+    }
+  },
+  "patterns": [ "helge-1-2*", "helge-1-3*"]
+}
