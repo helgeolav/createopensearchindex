@@ -21,6 +21,8 @@ func TestGuessTypeOf(t *testing.T) {
 		{"Test int", args{input: 5000}, "integer"},
 		{"Test float", args{input: 5000.50}, "float"},
 		{"Test args", args{args{}}, "unknown-main.args"},
+		{"Test IP", args{"1.2.3.4"}, "ip"},
+		{"Test IPv6", args{"fe80::18e5:a086:d307:69f7"}, "ip"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

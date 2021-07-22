@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -68,7 +69,7 @@ func (wc *WebCollector) Stop() {
 }
 
 // fieldTypePriorityList is priorities of types, meaning a field can be "upgraded" to the left on the list
-var fieldTypePriorityList = []string{"text", "float", "integer", "bool"}
+var fieldTypePriorityList = []string{"text", "ip", "float", "integer", "bool"}
 
 // upgradeFieldType checks if the field type have to change to a better matching type
 // based on detection of types.
@@ -224,7 +225,13 @@ func GuessTypeOf(input interface{}) (result string) {
 		result = "integer"
 	case bool, []bool:
 		result = "boolean"
-	case string, []string:
+	case string:
+		if net.ParseIP(t) != nil {
+			result = "ip"
+		} else {
+			result = "text"
+		}
+	case []string:
 		result = "text"
 	default:
 		result = "unknown-" + reflect.TypeOf(input).String()
