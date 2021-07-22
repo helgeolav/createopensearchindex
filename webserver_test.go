@@ -63,3 +63,30 @@ func TestInputStruct_addKey(t *testing.T) {
 		t.Errorf("sub2 failed")
 	}
 }
+
+func Test_upgradeFieldType(t *testing.T) {
+	type args struct {
+		currentKey string
+		newKey     string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{"from text to bool", args{currentKey: "text", newKey: "bool"}, "text"},
+		{"from int to text", args{currentKey: "integer", newKey: "text"}, "text"},
+		{"from text to int", args{currentKey: "text", newKey: "integer"}, "text"},
+		{"from float to int", args{currentKey: "float", newKey: "integer"}, "float"},
+		{"from int to float", args{currentKey: "integer", newKey: "float"}, "float"},
+		{"from int to unknown", args{currentKey: "integer", newKey: "unkown"}, "integer"},
+		{"from int to int", args{currentKey: "integer", newKey: "integer"}, "integer"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := upgradeFieldType(tt.args.currentKey, tt.args.newKey); got != tt.want {
+				t.Errorf("upgradeFieldType() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

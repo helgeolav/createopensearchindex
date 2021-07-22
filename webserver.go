@@ -67,14 +67,58 @@ func (wc *WebCollector) Stop() {
 	}
 }
 
+// fieldTypePriorityList is priorities of types, meaning a field can be "upgraded" to the left on the list
+var fieldTypePriorityList = []string{"text", "float", "integer", "bool"}
+
+// upgradeFieldType checks if the field type have to change to a better matching type
+// based on detection of types.
+func upgradeFieldType(currentKey, newKey string) string {
+	// if no change
+	if currentKey == newKey {
+		return currentKey
+	}
+	// if empty newKey
+	if len(newKey) == 0 {
+		return currentKey
+	}
+	const notFound = -1
+	// func to find the position in the list, or notFound if not found
+	getPos := func(name string) int {
+		x := 0
+		for _, v := range fieldTypePriorityList {
+			if v == name {
+				return x
+			}
+			x++
+		}
+		return notFound
+	}
+	// see if field is in list
+	cu := getPos(currentKey)
+	ne := getPos(newKey)
+	// if one of the keys are not in the list return the current key
+	if cu == notFound || ne == notFound {
+		return currentKey
+	}
+	if cu < ne {
+		return currentKey
+	} else {
+		return newKey
+	}
+}
+
 // Add increases the number for all the given keys
 func (wc *WebCollector) Add(keys []Key) {
 	atomic.AddUint64(&wc.TotalKeys, uint64(len(keys)))
+	if len(keys) == 0 {
+		return
+	}
 	atomic.AddUint64(&wc.TotalAdd, 1)
 	wc.mtx.Lock()
 	for _, key := range keys {
 		if keyData, ok := wc.Data[key.Name]; ok {
 			keyData.Count++
+			keyData.Type = upgradeFieldType(keyData.Type, key.Type)
 			wc.Data[key.Name] = keyData
 		} else {
 			d := CollectedData{Count: 1, Type: key.Type}
@@ -90,7 +134,7 @@ func webPing(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write([]byte("OK"))
 }
 
-// RunWebServer starts the webserver. This method does not return until program exits
+// RunWebServer starts the webserver. This method does not return.
 func RunWebServer() {
 	wc := NewWebCollector()
 	// start ctrl+c handler
