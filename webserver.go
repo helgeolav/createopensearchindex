@@ -122,7 +122,7 @@ func RunWebServer() {
 		keys := findKeywords("", inputBody)
 		wc.Add(keys)
 		atomic.AddUint64(&wc.SuccessHttp, 1)
-		w.WriteHeader(http.StatusAccepted)
+		w.WriteHeader(http.StatusOK)
 	}
 	// setup webserver
 	http.HandleFunc("/post", webserverFunc)
@@ -131,14 +131,15 @@ func RunWebServer() {
 }
 
 // findKeywords returns a list of keywords
-func findKeywords(parent string, input map[string]interface{}) []Key {
+func findKeywords(srcParent string, input map[string]interface{}) []Key {
 	var result []Key
+	var parent string
 	for k, v := range input {
-		key := Key{Name: parent + k}
+		key := Key{Name: srcParent + k}
 		switch t := v.(type) {
 		case map[string]interface{}:
-			if len(parent) > 0 {
-				parent = parent + "." + k
+			if len(srcParent) > 0 {
+				parent = srcParent + k + "."
 			} else {
 				parent = k + "."
 			}
