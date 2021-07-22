@@ -84,6 +84,12 @@ func (wc *WebCollector) Add(keys []Key) {
 	wc.mtx.Unlock()
 }
 
+// webPing responds OK with a short text
+func webPing(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte("OK"))
+}
+
 // RunWebServer starts the webserver. This method does not return until program exits
 func RunWebServer() {
 	wc := NewWebCollector()
@@ -126,6 +132,7 @@ func RunWebServer() {
 	}
 	// setup webserver
 	http.HandleFunc("/post", webserverFunc)
+	http.HandleFunc("/ping", webPing)
 	fmt.Println("Webserver started")
 	http.ListenAndServe(*httpListenPort, nil)
 }
