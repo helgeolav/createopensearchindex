@@ -17,20 +17,25 @@ type InputStruct map[string]interface{}
 
 // ConfigFile is the input file that we read
 type ConfigFile struct {
-	Input           InputStruct   `json:"input,omitempty"`
-	Patterns        []string      `json:"patterns,omitempty"`
-	SupportedFields []string      `json:"supported_fields,omitempty"`
-	WebCollector    *WebCollector `json:"web_collecor,omitempty"`
+	Input            InputStruct       `json:"input,omitempty"`             // this are the fields we are working on
+	Patterns         []string          `json:"patterns,omitempty"`          // patterns to be copied to the template
+	SupportedFields  []string          `json:"supported_fields,omitempty"`  // user configurable set of supported fields
+	WebCollector     *WebCollector     `json:"web_collecor,omitempty"`      // used by web server to output more statistics after collection
+	TemplateSettings *TemplateSettings `json:"template_settings,omitempty"` // optional template settings that are copied to output if present
 }
 
 const (
-	typeNested = "nested"    // name of the nested type
-	typeString = "text"      // name of string type
-	typeInt    = "integer"   // name of integer type
-	typeIP     = "ip"        // name of IP
-	typeDate   = "date"      // name of date
-	typeFloat  = "float"     // name of float
-	typeGeo    = "geo_point" // name of geo point
+	typeNested   = "nested"    // name of the nested structs
+	typeString   = "text"      // name of string type
+	typeInt      = "integer"   // name of integer type
+	typeIP       = "ip"        // name of IP
+	typeDate     = "date"      // name of date
+	typeFloat    = "float"     // name of float
+	typeGeo      = "geo_point" // name of geo point
+	typeKeyword  = "keyword"   // name of keyword type
+	typeTemplate = "template"  // for template name in index templates
+	typeMappings = "mappings"  // for mappings name in index templates
+	typeSettings = "settings"  // for settings name in index templates
 )
 
 var (
@@ -39,7 +44,7 @@ var (
 	isTemplate          = flag.Bool("template", false, "true if template")
 	mode                = flag.String("mode", "createindex", "type of operation")
 	myInputFile         ConfigFile
-	supportedFieldTypes = []string{typeString, typeInt, typeIP, typeGeo, typeFloat, typeDate, typeNested}
+	supportedFieldTypes = []string{typeString, typeInt, typeIP, typeGeo, typeFloat, typeDate, typeNested, typeKeyword}
 	errorCount          = 0 // used with os.Exit
 )
 
@@ -77,7 +82,7 @@ func main() {
 			fmt.Println(err)
 			errorCount++
 		}
-		result := TemplateGenerator()
+		result := IndexMapperGenerator()
 		err := saveOutput(result)
 		if err != nil {
 			fmt.Println(err)
@@ -94,7 +99,7 @@ func main() {
 
 // saveOutput saves result to file if specified in outputFile or to stdout
 func saveOutput(o interface{}) error {
-	res, err := json.MarshalIndent(&o, "", " ")
+	res, err := json.MarshalIndent(&o, "", "  ")
 	if err == nil {
 		if len((*outputFile)) > 0 {
 			err = ioutil.WriteFile(*outputFile, res, 0644)

@@ -15,11 +15,14 @@ func SupportedFieldType(kind string) bool {
 	return false
 }
 
+// TODO: remove it - seems not to be needed and used
+// Keyword is used under FieldMapper to give som additional properties
 type Keyword struct {
 	Type        string `json:"type,omitempty"` // will be of value keyword
 	IgnoreAbove int    `json:"ignore_above,omitempty"`
 }
 
+// Mappings is used to create an intermediate in the output
 type Mappings struct {
 	Properties map[string]interface{} `json:"properties,omitempty"`
 }
@@ -31,6 +34,19 @@ type FieldMapper struct {
 	Fields     *Keyword               `json:"fields,omitempty"`     // used to define keyword
 }
 
+// TemplateTop is the top level struct for creating templates
+type TemplateTop struct {
+	IndexPatterns []string               `json:"index_patterns,omitempty"` // list of indices using this template
+	Template      map[string]interface{} `json:"template"`                 // The template definitions
+	Priority      int                    `json:"priority,omitempty"`       // can be used to specify template priority, higher is better
+}
+
+// TemplateSettings are settings that can be specified in the configuration (input) file and sent out with templates
+type TemplateSettings struct {
+	Shards   int `json:"number_of_shards,omitempty"`   // number of shards
+	Replicas int `json:"number_of_replicas,omitempty"` // number of replicas
+}
+
 // createField is the workhorse, paring a struct and creating the inner field definition that is common for both template and non-templates. This method is called recursively.
 func createField(name string, value interface{}) interface{} {
 	switch vt := value.(type) {
@@ -39,12 +55,13 @@ func createField(name string, value interface{}) interface{} {
 			res := FieldMapper{
 				Type: vt,
 			}
-			if vt == "xxtext" { //TODO: does not seem to be needed / supported for creation
-				res.Fields = &Keyword{
-					Type:        "keyword",
-					IgnoreAbove: 256,
-				}
-			}
+			//TODO: does not seem to be needed / supported for creation
+			//if vt == typeString {
+			//	res.Fields = &Keyword{
+			//		Type:        "keyword",
+			//		IgnoreAbove: 256,
+			//	}
+			//}
 			return res
 		} else {
 			fmt.Fprintln(os.Stderr, name, "has unsupported type", vt)
@@ -76,13 +93,22 @@ func createIndex() map[string]interface{} {
 	return result
 }
 
-func TemplateGenerator() interface{} {
+// IndexMapperGenerator generates either a mapping that can be used to create an index or
+// a template that can be applied to many indices.
+func IndexMapperGenerator() interface{} {
 	// generate template
 	var result interface{}
 	if *isTemplate {
-		// TODO: add support for templates
-		fmt.Fprintln(os.Stderr, "templates are not supported yet")
-		errorCount++
+		myResult := TemplateTop{
+			IndexPatterns: myInputFile.Patterns,
+			Template:      make(map[string]interface{}),
+		}
+		tmp := Mappings{Properties: createIndex()}
+		myResult.Template[typeMappings] = tmp
+		if myInputFile.TemplateSettings != nil {
+			myResult.Template[typeSettings] = *myInputFile.TemplateSettings
+		}
+		result = myResult
 	} else {
 		tmp := Mappings{Properties: createIndex()}
 		tmp2 := make(map[string]interface{})
