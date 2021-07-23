@@ -39,7 +39,7 @@ func createField(name string, value interface{}) interface{} {
 			res := FieldMapper{
 				Type: vt,
 			}
-			if vt == "text" {
+			if vt == "xxtext" {
 				res.Fields = Keyword{
 					Type:        "keyword",
 					IgnoreAbove: 256,
