@@ -48,6 +48,10 @@ func createField(name string, value interface{}) interface{} {
 		} else {
 			fmt.Fprintln(os.Stderr, name, "has unsupported type", vt)
 			errorCount++
+			res := FieldMapper{
+				Type: vt,
+			}
+			return res
 		}
 	case map[string]interface{}:
 		result := make(map[string]interface{})

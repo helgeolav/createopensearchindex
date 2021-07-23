@@ -29,7 +29,7 @@ var (
 	isTemplate          = flag.Bool("template", false, "true if template")
 	mode                = flag.String("mode", "createindex", "type of operation")
 	myInputFile         ConfigFile
-	supportedFieldTypes = []string{"text", "integer", "ip", "geo_point", "float"}
+	supportedFieldTypes = []string{"text", "integer", "ip", "geo_point", "float", "date"}
 	errorCount          = 0 // used with os.Exit
 )
 
