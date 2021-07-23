@@ -37,12 +37,13 @@ func createField(name string, value interface{}) interface{} {
 	case string:
 		if SupportedFieldType(vt) {
 			res := FieldMapper{
-				Type:       vt,
-				Properties: nil,
-				Fields: Keyword{
+				Type: vt,
+			}
+			if vt == "text" {
+				res.Fields = Keyword{
 					Type:        "keyword",
 					IgnoreAbove: 256,
-				},
+				}
 			}
 			return res
 		} else {
