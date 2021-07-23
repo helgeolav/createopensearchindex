@@ -28,7 +28,7 @@ type Mappings struct {
 type FieldMapper struct {
 	Type       string                 `json:"type"`                 // kind of field
 	Properties map[string]interface{} `json:"properties,omitempty"` // used if we have subtypes
-	Fields     Keyword                `json:"fields,omitempty"`     // used to define keyword
+	Fields     *Keyword               `json:"fields,omitempty"`     // used to define keyword
 }
 
 // createField is the workhorse, paring a struct and creating the inner field definition that is common for both template and non-templates. This method is called recursively.
@@ -39,8 +39,8 @@ func createField(name string, value interface{}) interface{} {
 			res := FieldMapper{
 				Type: vt,
 			}
-			if vt == "xxtext" {
-				res.Fields = Keyword{
+			if vt == "xxtext" { //TODO: does not seem to be needed / supported for creation
+				res.Fields = &Keyword{
 					Type:        "keyword",
 					IgnoreAbove: 256,
 				}
@@ -59,7 +59,10 @@ func createField(name string, value interface{}) interface{} {
 		for k, v := range vt {
 			result[k] = createField(k, v)
 		}
-		return result
+		return FieldMapper{
+			Type:       typeNested,
+			Properties: result,
+		}
 	}
 	return nil
 }

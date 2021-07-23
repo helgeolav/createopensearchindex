@@ -23,13 +23,23 @@ type ConfigFile struct {
 	WebCollector    *WebCollector `json:"web_collecor,omitempty"`
 }
 
+const (
+	typeNested = "nested"    // name of the nested type
+	typeString = "text"      // name of string type
+	typeInt    = "integer"   // name of integer type
+	typeIP     = "ip"        // name of IP
+	typeDate   = "date"      // name of date
+	typeFloat  = "float"     // name of float
+	typeGeo    = "geo_point" // name of geo point
+)
+
 var (
 	inputFile           = flag.String("input", "", "name of input file")
 	outputFile          = flag.String("output", "", "name of output file")
 	isTemplate          = flag.Bool("template", false, "true if template")
 	mode                = flag.String("mode", "createindex", "type of operation")
 	myInputFile         ConfigFile
-	supportedFieldTypes = []string{"text", "integer", "ip", "geo_point", "float", "date"}
+	supportedFieldTypes = []string{typeString, typeInt, typeIP, typeGeo, typeFloat, typeDate, typeNested}
 	errorCount          = 0 // used with os.Exit
 )
 
@@ -84,7 +94,7 @@ func main() {
 
 // saveOutput saves result to file if specified in outputFile or to stdout
 func saveOutput(o interface{}) error {
-	res, err := json.Marshal(&o)
+	res, err := json.MarshalIndent(&o, "", " ")
 	if err == nil {
 		if len((*outputFile)) > 0 {
 			err = ioutil.WriteFile(*outputFile, res, 0644)
