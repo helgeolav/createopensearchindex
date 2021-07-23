@@ -36,7 +36,7 @@ type WebCollector struct {
 	SuccessHttp uint64                   `json:"success_http,omitempty"` // successful HTTP calls received
 	TotalKeys   uint64                   `json:"total_keys,omitempty"`   // total number of keys found
 	TotalAdd    uint64                   `json:"total_add,omitempty"`    // total number of times Add was called
-	mtx         sync.Mutex               `json:"-"`
+	mtx         sync.Mutex               `json:"-"`                      // mutex for Data
 	Data        map[string]CollectedData `json:"data,omitempty"`
 }
 

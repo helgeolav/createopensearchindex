@@ -68,12 +68,11 @@ func main() {
 			errorCount++
 		}
 		result := TemplateGenerator()
-		res, err := json.Marshal(&result)
+		err := saveOutput(result)
 		if err != nil {
 			fmt.Println(err)
 			errorCount++
 		}
-		fmt.Println(string(res))
 	case "webserver":
 		RunWebServer()
 	default:
@@ -81,4 +80,17 @@ func main() {
 		errorCount++
 	}
 	os.Exit(errorCount)
+}
+
+// saveOutput saves result to file if specified in outputFile or to stdout
+func saveOutput(o interface{}) error {
+	res, err := json.Marshal(&o)
+	if err == nil {
+		if len((*outputFile)) > 0 {
+			err = ioutil.WriteFile(*outputFile, res, 0644)
+		} else {
+			fmt.Println(string(res))
+		}
+	}
+	return err
 }
